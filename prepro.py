@@ -55,7 +55,7 @@ def prepro_description(imgs, params):
         # remove stopwords and punctuations
         stop = stopwords.words('english') + list(string.punctuation)
         txt = [i for i in word_tokenize(s.lower()) if i not in stop]
-        
+
         img['processed_description_tokens'] = txt
         if i < 10: print (txt)
         if i % 1000 == 0:
@@ -349,6 +349,8 @@ def main(params):
     wtoi_d = {w:i+1 for i,w in enumerate(vocab_d)} # inverse table
 
     description_train, description_length_train = encode_description(imgs_train, params, wtoi_d)
+    print("\n\nlabel_arrays: {}\n\n".format(description_train))
+
 
     imgs_test = apply_vocab_description(imgs_test, wtoi_d)
     description_test, description_length_test = encode_description(imgs_test, params, wtoi_d)
@@ -356,7 +358,6 @@ def main(params):
 
     # get the unique image for train and test
     unique_img_train, img_pos_train = get_unqiue_img(imgs_train)
-    # print(img_pos_train)
    
     unique_img_test, img_pos_test = get_unqiue_img(imgs_test)
 
@@ -407,6 +408,7 @@ def main(params):
     out['ix_to_word_d'] = itow_d # encode the (1-indexed) vocab
     out['ix_to_ans'] = itoa
     out['unique_img_train'] = unique_img_train
+    print("\n\n\nunique_img_train: {}\n\n\n".format(len(out['unique_img_train'])))
     out['unique_img_test'] = unique_img_test
     # print(len(out['unique_img_train']))
     # print(len(out['unique_img_test']))
@@ -424,6 +426,7 @@ def main(params):
 
     json.dump(out, open(params['output_json'], 'w'))
     print ('wrote ', params['output_json'])
+    
 
 if __name__ == "__main__":
 
@@ -450,4 +453,5 @@ if __name__ == "__main__":
     params = vars(args) # convert to ordinary dict
     print ('parsed input parameters:')
     print (json.dumps(params, indent = 2))
+
     main(params)

@@ -32,6 +32,7 @@ def get_data_test():
     print('loading h5 file...')
     with h5py.File(input_ques_h5,'r') as hf:
         test_data['num_answers'] = np.array(hf.get('num_answers'))
+        print("num_answers: {}".format(test_data['num_answers']))
         # total number of training data is 215375
         # question is (26, )
         tem = hf.get('ques_test')
@@ -41,12 +42,19 @@ def get_data_test():
         test_data['length_q'] = np.array(tem)
 
         if variation in ['isq', 'sq']:
-            # question is 
-            tem = hf.get('description_test')
-            test_data['description'] = np.array(tem)-1
-            # max length is 
-            tem = hf.get('description_length_test')
-            test_data['length_d'] = np.array(tem)
+            if offline_text == "False":
+                # print("\n\n\noffline_text false\n\n\n")
+                # question is 
+                tem = hf.get('description_test')
+                test_data['description'] = np.array(tem)-1
+                # max length is 
+                tem = hf.get('description_length_test')
+                test_data['length_d'] = np.array(tem)
+            else:
+                # print("\n\n\noffline_text true\n\n\n")
+                with h5py.File(input_text_h5,'r') as hf_text:
+                    tem = hf_text.get('text_test')
+                    test_data['description_embedding'] = np.array(tem)
 
         if variation in ['isq', 'iq']:
             # total 82460 img
@@ -68,8 +76,9 @@ def get_data_test():
         return dataset, test_data
 
     if variation in ['isq', 'sq']:
-        print('description aligning')
-        test_data['description'] = right_align(test_data['description'], test_data['length_d'])
+        if offline_text == "False":
+            print('description aligning')
+            test_data['description'] = right_align(test_data['description'], test_data['length_d'])
 
         if variation == 'sq':
             return dataset, test_data
@@ -119,16 +128,25 @@ def test(model_path, result_number):
             vocabulary_size_d = vocabulary_size_d,
             drop_out_rate = 0,
             num_answers = test_data['num_answers'],
-            variation=variation)
+            variation=variation,
+            offline_text=offline_text)
 
     # tf_answer, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_description, tf_question, tf_mc_answers = model.build_generator() # my code
     # tf_answer, tf_image, tf_question, = model.build_generator()
     if variation == 'isq':
-        tf_answer, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_description, tf_question, tf_mc_answers = model.build_generator() # my code
+        if offline_text == "False":
+            # print("\n\n\noffline_text false\n\n\n")
+            tf_answer, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_description, tf_question, tf_mc_answers = model.build_generator() # my code
+        else:
+            # print("\n\n\noffline_text true\n\n\n")
+            tf_answer, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_description_embedding, tf_question, tf_mc_answers = model.build_generator() # my code
     elif variation == 'iq':
         tf_answer, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_question, tf_mc_answers = model.build_generator() # my code
     elif variation == 'sq':
-        tf_answer, tf_description, tf_question, tf_mc_answers = model.build_generator() # my code
+        if offline_text == "False":
+            tf_answer, tf_description, tf_question, tf_mc_answers = model.build_generator() # my code
+        else:
+            tf_answer, tf_description_embedding, tf_question, tf_mc_answers = model.build_generator() # my code
     else:
         tf_answer, tf_question, tf_mc_answers = model.build_generator() # my code
 
@@ -152,8 +170,14 @@ def test(model_path, result_number):
         current_length_q = test_data['length_q'][current_batch_file_idx]
 
         if variation in ['isq', 'sq']:
-            current_description = test_data['description'][current_batch_file_idx,:]
-            current_length_d = test_data['length_d'][current_batch_file_idx]
+            if offline_text == "False":
+                # print("\n\n\noffline_text false\n\n\n")
+                current_description = test_data['description'][current_batch_file_idx,:]
+                current_length_d = test_data['length_d'][current_batch_file_idx]
+            else:
+                # print("\n\n\noffline_text true\n\n\n")
+                current_description_embedding = test_data['description_embedding'][current_batch_file_idx,:]
+                # print("current_description_embedding: {}".format(current_description_embedding))
 
         current_ques_id  = test_data['ques_id'][current_batch_file_idx]
 
@@ -181,10 +205,17 @@ def test(model_path, result_number):
             pad_q_len = np.zeros(batch_size-len(current_length_q),dtype=np.int)
             
             if variation in ['isq', 'sq']:
-                pad_d = np.zeros((batch_size-len(current_question),max_words_d),dtype=np.int)
-                pad_d_len = np.zeros(batch_size-len(current_length_d),dtype=np.int)
-                current_description = np.concatenate((current_description, pad_d))
-                current_length_d = np.concatenate((current_length_d, pad_d_len))
+                if offline_text == "False":
+                    # print("\n\n\noffline_text false\n\n\n")
+                    pad_d = np.zeros((batch_size-len(current_question),max_words_d),dtype=np.int)
+                    pad_d_len = np.zeros(batch_size-len(current_length_d),dtype=np.int)
+                    current_description = np.concatenate((current_description, pad_d))
+                    current_length_d = np.concatenate((current_length_d, pad_d_len))
+                else:
+                    # print("\n\n\noffline_text true\n\n\n")
+                    pad_d_emb = np.zeros((batch_size-len(current_description_embedding),dim_hidden),dtype=np.float)
+                    current_description_embedding = np.concatenate((current_description_embedding, pad_d_emb))
+                    # print("padded current_description_embedding: {}".format(current_description_embedding))
             
             pad_q_id = np.zeros(batch_size-len(current_length_q),dtype=np.int)
             pad_ques_id = np.zeros(batch_size-len(current_length_q),dtype=np.int)
@@ -215,18 +246,34 @@ def test(model_path, result_number):
             # my code end
 
         if variation == 'isq':
-            generated_ans = sess.run(
-                                tf_answer,
-                                feed_dict={
-                                    tf_image: current_img,
-                                    tf_image2: current_img2,    # my code
-                                    tf_image3: current_img3,    # my code
-                                    tf_image4: current_img4,    # my code
-                                    tf_image5: current_img5,    # my code
-                                    tf_description: current_description,
-                                    tf_question: current_question,
-                                    tf_mc_answers: current_mc_answers
-                                    })
+            if offline_text == "False":
+                # print("\n\n\noffline_text false\n\n\n")
+                generated_ans = sess.run(
+                                    tf_answer,
+                                    feed_dict={
+                                        tf_image: current_img,
+                                        tf_image2: current_img2,    # my code
+                                        tf_image3: current_img3,    # my code
+                                        tf_image4: current_img4,    # my code
+                                        tf_image5: current_img5,    # my code
+                                        tf_description: current_description,
+                                        tf_question: current_question,
+                                        tf_mc_answers: current_mc_answers
+                                        })
+            else:
+                # print("\n\n\noffline_text true\n\n\n")
+                generated_ans = sess.run(
+                                    tf_answer,
+                                    feed_dict={
+                                        tf_image: current_img,
+                                        tf_image2: current_img2,    # my code
+                                        tf_image3: current_img3,    # my code
+                                        tf_image4: current_img4,    # my code
+                                        tf_image5: current_img5,    # my code
+                                        tf_description_embedding: current_description_embedding,
+                                        tf_question: current_question,
+                                        tf_mc_answers: current_mc_answers
+                                        })
         elif variation == 'iq':
             generated_ans = sess.run(
                                 tf_answer,
@@ -240,13 +287,22 @@ def test(model_path, result_number):
                                     tf_mc_answers: current_mc_answers
                                     })
         elif variation == 'sq':
-            generated_ans = sess.run(
-                                tf_answer,
-                                feed_dict={
-                                    tf_description: current_description,
-                                    tf_question: current_question,
-                                    tf_mc_answers: current_mc_answers
-                                    })
+            if offline_text == "False":
+                generated_ans = sess.run(
+                                    tf_answer,
+                                    feed_dict={
+                                        tf_description: current_description,
+                                        tf_question: current_question,
+                                        tf_mc_answers: current_mc_answers
+                                        })
+            else:
+                generated_ans = sess.run(
+                                    tf_answer,
+                                    feed_dict={
+                                        tf_description_embedding: current_description_embedding,
+                                        tf_question: current_question,
+                                        tf_mc_answers: current_mc_answers
+                                        })
         else:
             generated_ans = sess.run(
                                 tf_answer,
@@ -332,19 +388,26 @@ def test(model_path, result_number):
     # Save to JSON
     print ('Saving result...')
     my_list = list(result)
-    dd = json.dump(my_list,open('Results/'+variation+'/result_data_'+result_number+'.json','w'))
+    dd = json.dump(my_list,open('Results/'+variation+'/result_offline_bert_text_'+result_number+'.json','w'))
 
 variation = ''
+offline_text = None
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--variation', required=True, help='enter variation - isq, iq, sq, q')
+    parser.add_argument('--offline_text', required=True, help='enter variation - True, False')
     parser.add_argument('--model_path', required=True, help='input model name to be used')
-    parser.add_argument('--result_number', required=True, help='result number')
+    # parser.add_argument('--model_number', required=True, help='model iteration number')
     
     args = parser.parse_args()
     params = vars(args)
+
+    offline_text = params['offline_text']
     variation = params['variation']
+    model_path = params['model_path']
+    result_number = model_path.split('-')[-1]
+    # "model_save/model_save_q/model-10"
 
     with tf.device('/gpu:'+str(1)):
-        test(params['model_path'], params['result_number'])
+        test(model_path, result_number)

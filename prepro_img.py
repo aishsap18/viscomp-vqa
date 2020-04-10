@@ -38,7 +38,7 @@ def extract_feat(imlist, dname):
         for b in range(end-start):
             # use batch_imname[b].encode('utf-8') if error
             imname = os.path.join(image_root, batch_imname[b])
-            # print("Image: {}, shape: {}".format(imname, img.shape))
+            # print("Image: {}".format(imname))
             I = resize(cv2.imread(imname), (IMG_HEIGHT, IMG_WIDTH))-mean
             I = np.transpose(I, (2, 0, 1))
             batch_image[b, ...] = I
