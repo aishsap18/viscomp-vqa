@@ -1,9 +1,4 @@
-This code is done in Python 3.7.4, Tensorflow 1.14 and cuda 10.0. I am attaching conda environment file which will install all the requirements necessary to run the code. Please use the same set of instructions for running both the variations in their own directories.
-
-After activating the environment, 
-
-#### answer generation seq-to-seq model 
-## checkpoint_path = 'model_save_ans/'
+#### answer generation seq-to-seq model
 
 1. First by running the notebook GenerateJsonFiles.ipynb, 4 JSON files will be generated in "data/annotations" - train_annotations.json, val_annotations.json, train_questions.json, val_questions.json. (I am attaching the generated files.)
 
@@ -25,10 +20,8 @@ After activating the environment,
 
 6. Now, train the model by running - 
 		python batch_train_pytorch.py --input_data_file data_prepro.json --input_img_file data_img_471.h5 --input_bert_emb data_text_bert_sq_471.h5 --model_save model_save/ --variation isq
-	This will train the model and save models at each      th epoch in the "model_save" directory. This will also generate the losses.json file in the main directory.
-
+	This will train the model and save models at each 20th epoch in the "model_save" directory. 
+	
 7. To test the model run the following -
-		python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img_471.h5 --input_bert_emb data_text_bert_sq_471.h5 --checkpoint_path model_save/model_isq/epoch-1.pt --results_path results/ --variation isq
-	This will run the saved model at th epoch. Enter any model number from []. This will generate results.json file which will contain the results. 
-
-8. Please run the VisualizeResults.ipynb notebook to visualize the results. I have attached the .html file of this notebook to view the results. 
+		python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img_471.h5 --input_bert_emb data_text_bert_sq_471.h5 --checkpoint_path model_save/model_isq/epoch-20.pt --results_path results/ --variation isq
+	This will run the saved model at 20th epoch. This will generate results_20.json file which will contain the results. 
