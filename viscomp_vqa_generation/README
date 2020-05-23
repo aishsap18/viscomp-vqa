@@ -1,0 +1,34 @@
+This code is done in Python 3.7.4, Tensorflow 1.14 and cuda 10.0. I am attaching conda environment file which will install all the requirements necessary to run the code. Please use the same set of instructions for running both the variations in their own directories.
+
+After activating the environment, 
+
+#### answer generation seq-to-seq model 
+## checkpoint_path = 'model_save_ans/'
+
+1. First by running the notebook GenerateJsonFiles.ipynb, 4 JSON files will be generated in "data/annotations" - train_annotations.json, val_annotations.json, train_questions.json, val_questions.json. (I am attaching the generated files.)
+
+2. Change directory to "data" and run -
+		python vqa_preprocessing.py --train_questions annotations/train_questions_471.json --test_questions annotations/val_questions_81.json --train_annotations annotations/train_annotations_471.json --test_annotations annotations/val_annotations_81.json
+	This will generate 2 files in the data folder, vqa_raw_train.json and vqa_raw_test.json.
+
+3. Come back to main directory and run - 
+		python prepro_data.py --train_input data/vqa_raw_train.json --test_input data/vqa_raw_test.json --output_json data_prepro.json --variation isq
+	This will generate file in the main folder data_prepro.json.
+
+4. For extracting image features, download the train and val folders from "https://drive.google.com/open?id=1GKyFDTcOvxy7XXxyNhkHTs6WpCsBnKoy" link and extract them in the "data" directory. Then download the pretrained VGGNet 19 layer model from this site "https://gist.github.com/ksimonyan/3785162f95cd2d5fee77" and then run -
+		python prepro_img.py
+	This will generate data_img.h5 file. 
+
+5. For generating bert embeddings -
+		source activate vis_vqa2
+		python get_bert_embeddings.py --variation sq --train_input data/vqa_raw_train.json --test_input data/vqa_raw_test.json
+
+6. Now, train the model by running - 
+		python batch_train_pytorch.py --input_data_file data_prepro.json --input_img_file data_img_471.h5 --input_bert_emb data_text_bert_sq_471.h5 --model_save model_save/ --variation isq
+	This will train the model and save models at each      th epoch in the "model_save" directory. This will also generate the losses.json file in the main directory.
+
+7. To test the model run the following -
+		python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img_471.h5 --input_bert_emb data_text_bert_sq_471.h5 --checkpoint_path model_save/model_isq/epoch-1.pt --results_path results/ --variation isq
+	This will run the saved model at th epoch. Enter any model number from []. This will generate results.json file which will contain the results. 
+
+8. Please run the VisualizeResults.ipynb notebook to visualize the results. I have attached the .html file of this notebook to view the results. 
