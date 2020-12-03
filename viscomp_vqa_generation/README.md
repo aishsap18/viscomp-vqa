@@ -1,7 +1,7 @@
 
 # Summary Generation
 
-This code is based on the Pytorch implementation of [https://github.com/tensorflow/nmt](NMT Sequence-to-Sequence model). The input is a sequence of images and a natural language story based on which a concise summary is generated. 
+This code is based on the Pytorch implementation of [NMT Sequence-to-Sequence model](https://github.com/tensorflow/nmt). The input is a sequence of images and a natural language story based on which a concise summary is generated. 
 
 ### Installation 
 
