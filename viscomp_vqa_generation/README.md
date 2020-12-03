@@ -19,7 +19,6 @@ conda env create -f environment.yml
 
 ### Steps to execute
 
-***Reminder - add the annotations folder with the corresponding files in it***
 1. Navigate to the `data` directory in the root and run the following command
 ```
 cd ../data/
@@ -36,9 +35,8 @@ Here, the variations can be `isq - Images+Story`, `iq - Images+Question`, `sq - 
 This code will generate `data_prepro.json` containing the cleaned and pre-processed data. If the variation requires BERT embeddings then it will generate an additional `data_bert_emb.h5` containing BERT embeddings of the story and question tokens.  
 
 3. Extracting the images features 
-	- Download the pretrained VGGNet 19 layer model from [https://gist.github.com/ksimonyan/3785162f95cd2d5fee77]("https://gist.github.com/ksimonyan/3785162f95cd2d5fee77")
-	- Download the images from ****Reminder download image folder from magpie and generate a gdrive link****
-	***add opencv, caffe, progress to env***
+	- Download the pretrained VGGNet 19 layer model from [https://gist.github.com/ksimonyan/3785162f95cd2d5fee77](https://gist.github.com/ksimonyan/3785162f95cd2d5fee77)
+	- Download the images from [https://drive.google.com/open?id=1GKyFDTcOvxy7XXxyNhkHTs6WpCsBnKoy](https://drive.google.com/open?id=1GKyFDTcOvxy7XXxyNhkHTs6WpCsBnKoy)
 	- Execute the following command for extracting the image features
 		```
 		python prepro_img.py --input_json data_prepro.json --image_root [path to images directory] --cnn_proto [path to cnn prototxt] --cnn_model [path to cnn model]
