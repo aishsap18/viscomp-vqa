@@ -17,11 +17,12 @@ import random
 import pdb
 import string
 import h5py
-from nltk.tokenize import word_tokenize
+# from nltk.tokenize import word_tokenize
 import json
 
 import string
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
+from stopwords_list import stopwords
 import re
 def tokenize(sentence):
     return [i for i in re.split(r"([-.\"',:? !\$#@~()*&\^%;\[\]/\\\+<>\n=])", sentence) if i!='' and i!=' ' and i!='\n'];
@@ -37,10 +38,10 @@ def prepro_question(imgs, params):
         # else:
         txt = tokenize(str(s).lower())
         img['processed_tokens'] = txt
-        if i < 10: print (txt)
-        if i % 1000 == 0:
-            sys.stdout.write("processing %d/%d (%.2f%% done)   \r" %  (i, len(imgs), i*100.0/len(imgs)) )
-            sys.stdout.flush()   
+        # if i < 10: print (txt)
+        # if i % 1000 == 0:
+        #     sys.stdout.write("processing %d/%d (%.2f%% done)   \r" %  (i, len(imgs), i*100.0/len(imgs)) )
+        #     sys.stdout.flush()   
     return imgs
 
 def prepro_description(imgs, params):
@@ -53,14 +54,16 @@ def prepro_description(imgs, params):
         # else:
 
         # remove stopwords and punctuations
-        stop = stopwords.words('english') + list(string.punctuation)
-        txt = [i for i in word_tokenize(s.lower()) if i not in stop]
+        # stop = stopwords.words('english') + list(string.punctuation)
+        stop = stopwords + list(string.punctuation)
+        # txt = [i for i in word_tokenize(s.lower()) if i not in stop]
+        txt = [i for i in tokenize(s.lower()) if i not in stop]
 
         img['processed_description_tokens'] = txt
-        if i < 10: print (txt)
-        if i % 1000 == 0:
-            sys.stdout.write("processing %d/%d (%.2f%% done)   \r" %  (i, len(imgs), i*100.0/len(imgs)) )
-            sys.stdout.flush()   
+        # if i < 10: print (txt)
+        # if i % 1000 == 0:
+        #     sys.stdout.write("processing %d/%d (%.2f%% done)   \r" %  (i, len(imgs), i*100.0/len(imgs)) )
+        #     sys.stdout.flush()   
     return imgs    
 
 def build_vocab_question(imgs, params):
@@ -75,7 +78,7 @@ def build_vocab_question(imgs, params):
             counts[w] = counts.get(w, 0) + 1
     cw = sorted([(count,w) for w,count in counts.items()], reverse=True)
     print ('top words and their counts:')
-    print ('\n'.join(map(str,cw[:20])))
+    # print ('\n'.join(map(str,cw[:20])))
 
     # print some stats
     total_words = sum(counts.values())
@@ -112,7 +115,7 @@ def build_vocab_description(imgs, params):
             counts[w] = counts.get(w, 0) + 1
     cw = sorted([(count,w) for w,count in counts.items()], reverse=True)
     print ('top words and their counts:')
-    print ('\n'.join(map(str,cw[:20])))
+    # print ('\n'.join(map(str,cw[:20])))
 
     # print some stats
     total_words = sum(counts.values())
@@ -163,7 +166,7 @@ def get_top_answers(imgs, params):
 
     cw = sorted([(count,w) for w,count in counts.items()], reverse=True)
     print ('top answer and their counts:')    
-    print ('\n'.join(map(str,cw[:20])))
+    # print ('\n'.join(map(str,cw[:20])))
     # print(len(cw))
     vocab = []
     # for top num_ans answers
@@ -349,7 +352,7 @@ def main(params):
     wtoi_d = {w:i+1 for i,w in enumerate(vocab_d)} # inverse table
 
     description_train, description_length_train = encode_description(imgs_train, params, wtoi_d)
-    print("\n\nlabel_arrays: {}\n\n".format(description_train))
+    # print("\n\nlabel_arrays: {}\n\n".format(description_train))
 
 
     imgs_test = apply_vocab_description(imgs_test, wtoi_d)
@@ -410,6 +413,8 @@ def main(params):
     out['unique_img_train'] = unique_img_train
     print("\n\n\nunique_img_train: {}\n\n\n".format(len(out['unique_img_train'])))
     out['unique_img_test'] = unique_img_test
+    print("\n\n\nunique_img_test: {}\n\n\n".format(len(out['unique_img_test'])))
+    
     # print(len(out['unique_img_train']))
     # print(len(out['unique_img_test']))
     # out['test_ans_ix'] = test_ans_ix
@@ -445,7 +450,7 @@ if __name__ == "__main__":
     parser.add_argument('--max_length', default=15, type=int, help='max length of a caption, in number of words. captions longer than this get clipped.')
     parser.add_argument('--word_count_threshold', default=0, type=int, help='only words that occur more than this number of times will be put in vocab')
     parser.add_argument('--num_test', default=0, type=int, help='number of test images (to withold until very very end)')
-    parser.add_argument('--token_method', default='nltk', help='token method, nltk is much more slower.')
+    # parser.add_argument('--token_method', default='nltk', help='token method, nltk is much more slower.')
 
     parser.add_argument('--batch_size', default=500, type=int)
 

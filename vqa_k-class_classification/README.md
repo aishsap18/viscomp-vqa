@@ -3,37 +3,19 @@
 
 This code is based on the [Tensorflow implementation of Deeper LSTM Q + norm I model for VQA](https://github.com/chingyaoc/VQA-tensorflow). The input is a sequence of images, a natural language story and question for which answer is predicted from a predefined set of K answers.  
 
-### Installation 
-
-1. Clone the repository and navigate to "k-class_classification"
-```
-git clone https://github.com/aishsap18/viscomp-vqa
-cd k-class_classification
-```
-
-2. Create the conda environment using the provided `.yml` file
-```
-conda env create -f environment.yml
-```
-
-3. Activate the environment
-```
-conda activate k-class_env
-```
 
 ### Steps to execute
 
 1. Navigate to the `data` directory in the root and run the following command
 ```
 cd ../data/
-python vqa_preprocessing.py --train_questions annotations/train_questions.json --test_questions annotations/val_questions.json --train_annotations annotations/train_annotations.json --test_annotations annotations/val_annotations.json --variation isq
+python vqa_preprocessing.py --train_questions annotations/train_questions.json --test_questions annotations/val_questions.json --train_annotations annotations/train_annotations.json --test_annotations annotations/val_annotations.json
 ```
-For predicting answers, use the `isq` variation stating `Images+Story+Question` input.
 This code will generate 2 files in the `data` directory, `vqa_raw_train.json` and `vqa_raw_test.json`.
 
-2. Navigate to `k-class_classification` directory and run the following command
+2. Navigate to `vqa_k-class_classification` directory and run the following command
 ```
-python prepro.py --input_train_json data/vqa_raw_train.json --input_test_json data/vqa_raw_test.json --num_ans [number of answers]
+python prepro.py --input_train_json ../data/vqa_raw_train.json --input_test_json ../data/vqa_raw_test.json --num_ans [number of answers]
 ```
 This will generate 2 files data_prepro.h5 and data_prepro.json containing pre-processed data.
 

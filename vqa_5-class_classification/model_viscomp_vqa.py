@@ -1,17 +1,13 @@
 #-*- coding: utf-8 -*-
 import tensorflow as tf
-import pandas as pd
 import numpy as np
 import os, h5py, sys, argparse
-import ipdb
 import time
 import math
-import cv2
-import codecs, json
-from tensorflow.compat.v1.nn import rnn_cell
-from sklearn.metrics import average_precision_score
+import json
+from tensorflow.nn import rnn_cell
 import gc
-import sys
+from tensorflow.python.client import device_lib
 
 class Answer_Generator():
     def __init__(self, rnn_size, rnn_layer, batch_size, input_embedding_size, dim_image, dim_hidden, 
@@ -109,9 +105,7 @@ class Answer_Generator():
 
         # end my code
 
-        # score-embedding
-
-
+        # score-embedding for 5-way
         self.embed_score_W = tf.Variable(tf.random.uniform([dim_hidden, options_embedding_size], -0.08, 0.08), name='embed_score_W')
         self.embed_h_b = tf.Variable(tf.random.uniform([options_embedding_size], -0.08, 0.08), name='embed_h_b')
         self.embed_score_b = tf.Variable(tf.random.uniform([num_output], -0.08, 0.08), name='embed_score_b')
@@ -122,28 +116,28 @@ class Answer_Generator():
 
     def build_model(self):
         if self.variation in ['isq', 'iq']:
-            image = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
             
             # my code
-            image2 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
-            image3 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
-            image4 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
-            image5 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image2 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image3 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image4 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image5 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
             # end my code
 
-        question = tf.compat.v1.placeholder(tf.int32, [self.batch_size, self.max_words_q])
+        question = tf.placeholder(tf.int32, [self.batch_size, self.max_words_q])
         
         if self.variation in ['isq', 'sq']:
             if self.offline_text == "False":
                 # print("\n\n\noffline_text false\n\n\n")
-                description = tf.compat.v1.placeholder(tf.int32, [self.batch_size, self.max_words_d])
+                description = tf.placeholder(tf.int32, [self.batch_size, self.max_words_d])
             else:
                 # print("\n\n\noffline_text true\n\n\n")
-                description_embedding = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_hidden])
+                description_embedding = tf.placeholder(tf.float32, [self.batch_size, self.dim_hidden])
 
-        mc_answers = tf.compat.v1.placeholder(tf.int32, [self.batch_size, num_output])
+        mc_answers = tf.placeholder(tf.int32, [self.batch_size, num_output])
 
-        label = tf.compat.v1.placeholder(tf.int64, [self.batch_size,]) 
+        label = tf.placeholder(tf.int64, [self.batch_size,]) 
         loss = 0.0
 
         # question embed
@@ -168,7 +162,7 @@ class Answer_Generator():
     	# multimodal (fusing question & image)
         state_drop = tf.nn.dropout(state, 1-self.drop_out_rate)
         # print("\n\n\n\n\nweight: {} \n bias: {} \n\n\n\n\n\n".format(self.embed_state_W, self.embed_state_b))
-        state_linear = tf.compat.v1.nn.xw_plus_b(tf.concat([state_drop[0], state_drop[1]], 1), self.embed_state_W, self.embed_state_b)
+        state_linear = tf.nn.xw_plus_b(tf.concat([state_drop[0], state_drop[1]], 1), self.embed_state_W, self.embed_state_b)
         state_emb = tf.tanh(state_linear)
 
         if self.variation in ['isq', 'sq']:
@@ -194,29 +188,29 @@ class Answer_Generator():
                 # description
                 state_drop_d = tf.nn.dropout(state_d, 1-self.drop_out_rate)
                 # print("\nstate0: {} \n state1: {} \n".format(state_drop[0], state_drop[1]))
-                state_linear_d = tf.compat.v1.nn.xw_plus_b(tf.concat([state_drop_d[0], state_drop_d[1]], 1), self.embed_state_desc_W, self.embed_state_desc_b)
+                state_linear_d = tf.nn.xw_plus_b(tf.concat([state_drop_d[0], state_drop_d[1]], 1), self.embed_state_desc_W, self.embed_state_desc_b)
                 state_emb_d = tf.tanh(state_linear_d)
             else:
                 # print("\n\n\noffline_text true\n\n\n")
                 state_drop_d = tf.nn.dropout(description_embedding, 1-self.drop_out_rate)
-                state_linear_d = tf.compat.v1.nn.xw_plus_b(state_drop_d, self.embed_state_desc_W, self.embed_state_desc_b)
+                state_linear_d = tf.nn.xw_plus_b(state_drop_d, self.embed_state_desc_W, self.embed_state_desc_b)
                 state_emb_d = tf.tanh(state_linear_d)
 
         if self.variation in ['isq', 'iq']:
             # images
             image_drop = tf.nn.dropout(image, 1-self.drop_out_rate)
-            image_linear = tf.compat.v1.nn.xw_plus_b(image_drop, self.embed_image_W, self.embed_image_b)
+            image_linear = tf.nn.xw_plus_b(image_drop, self.embed_image_W, self.embed_image_b)
             # image_emb = tf.tanh(image_linear)
 
             # my code
             image2_drop = tf.nn.dropout(image2, 1-self.drop_out_rate)
-            image2_linear = tf.compat.v1.nn.xw_plus_b(image2_drop, self.embed_image2_W, self.embed_image2_b)
+            image2_linear = tf.nn.xw_plus_b(image2_drop, self.embed_image2_W, self.embed_image2_b)
             image3_drop = tf.nn.dropout(image3, 1-self.drop_out_rate)
-            image3_linear = tf.compat.v1.nn.xw_plus_b(image3_drop, self.embed_image3_W, self.embed_image3_b)
+            image3_linear = tf.nn.xw_plus_b(image3_drop, self.embed_image3_W, self.embed_image3_b)
             image4_drop = tf.nn.dropout(image4, 1-self.drop_out_rate)
-            image4_linear = tf.compat.v1.nn.xw_plus_b(image4_drop, self.embed_image4_W, self.embed_image4_b)
+            image4_linear = tf.nn.xw_plus_b(image4_drop, self.embed_image4_W, self.embed_image4_b)
             image5_drop = tf.nn.dropout(image5, 1-self.drop_out_rate)
-            image5_linear = tf.compat.v1.nn.xw_plus_b(image5_drop, self.embed_image5_W, self.embed_image5_b)
+            image5_linear = tf.nn.xw_plus_b(image5_drop, self.embed_image5_W, self.embed_image5_b)
 
             # final_image_linear = tf.multiply(image_linear, image2_linear)
             final_image_linear = image_linear * image2_linear * image3_linear * image4_linear * image5_linear
@@ -253,7 +247,7 @@ class Answer_Generator():
 
         h_drop = tf.nn.dropout(h, 1-self.drop_out_rate)
         # print("\nh_drop: {} \nembed_score_W: {} \noptions_r_vector: {}".format(h_drop, self.embed_score_W, options_r_vector))
-        score_emb_h = tf.compat.v1.nn.xw_plus_b(h_drop, self.embed_score_W, self.embed_h_b)
+        score_emb_h = tf.nn.xw_plus_b(h_drop, self.embed_score_W, self.embed_h_b)
         # score_emb_h = tf.matmul(h_drop, self.embed_score_W)
         # print("\n\n\nscore_emb_h: {} \n\n\n".format(score_emb_h))
 
@@ -277,7 +271,7 @@ class Answer_Generator():
         loss = tf.reduce_mean(cross_entropy)
         # print("\n\nloss: {} \n\n".format(loss))
 
-        # score_emb = tf.compat.v1.nn.xw_plus_b(options_r_vector, tf.transpose(self.embed_score_W), h_drop)
+        # score_emb = tf.nn.xw_plus_b(options_r_vector, tf.transpose(self.embed_score_W), h_drop)
 
         # print("\n\nself.embed_options_W: {}\n\n".format(self.embed_options_W))
         if self.variation == 'isq':
@@ -306,23 +300,23 @@ class Answer_Generator():
     def build_generator(self):
         # print("\n\n\n\nvariation: {}\n\n\n\n".format(variation))
         if self.variation in ['isq', 'iq']:
-            image = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
             # my code
-            image2 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
-            image3 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
-            image4 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
-            image5 = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image2 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image3 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image4 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
+            image5 = tf.placeholder(tf.float32, [self.batch_size, self.dim_image])
             # my code end
 
-        question = tf.compat.v1.placeholder(tf.int32, [self.batch_size, self.max_words_q])
+        question = tf.placeholder(tf.int32, [self.batch_size, self.max_words_q])
         
         if self.variation in ['isq', 'sq']:
             if self.offline_text == "False":
-                description = tf.compat.v1.placeholder(tf.int32, [self.batch_size, self.max_words_d])
+                description = tf.placeholder(tf.int32, [self.batch_size, self.max_words_d])
             else:
-                description_embedding = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_hidden])
+                description_embedding = tf.placeholder(tf.float32, [self.batch_size, self.dim_hidden])
 
-        mc_answers = tf.compat.v1.placeholder(tf.int32, [self.batch_size, num_output])
+        mc_answers = tf.placeholder(tf.int32, [self.batch_size, num_output])
 
         # state = tf.zeros([self.batch_size, self.stacked_lstm.state_size])
         state = self.stacked_lstm.zero_state(self.batch_size, dtype=tf.float32)
@@ -343,7 +337,7 @@ class Answer_Generator():
         # question
         state_drop = tf.nn.dropout(state, 1-self.drop_out_rate)
         # state_linear = tf.nn.xw_plus_b(state_drop, self.embed_state_W, self.embed_state_b)
-        state_linear = tf.compat.v1.nn.xw_plus_b(tf.concat([state_drop[0], state_drop[1]], 1), self.embed_state_W, self.embed_state_b)
+        state_linear = tf.nn.xw_plus_b(tf.concat([state_drop[0], state_drop[1]], 1), self.embed_state_W, self.embed_state_b)
         state_emb = tf.tanh(state_linear)
     	
         if self.variation in ['isq', 'sq']:
@@ -368,28 +362,28 @@ class Answer_Generator():
                 # description
                 state_drop_d = tf.nn.dropout(state_d, 1-self.drop_out_rate)
                 # print("\nstate0: {} \n state1: {} \n".format(state_drop[0], state_drop[1]))
-                state_linear_d = tf.compat.v1.nn.xw_plus_b(tf.concat([state_drop_d[0], state_drop_d[1]], 1), self.embed_state_desc_W, self.embed_state_desc_b)
+                state_linear_d = tf.nn.xw_plus_b(tf.concat([state_drop_d[0], state_drop_d[1]], 1), self.embed_state_desc_W, self.embed_state_desc_b)
                 state_emb_d = tf.tanh(state_linear_d)
             else:
                 state_drop_d = tf.nn.dropout(description_embedding, 1-self.drop_out_rate)
-                state_linear_d = tf.compat.v1.nn.xw_plus_b(state_drop_d, self.embed_state_desc_W, self.embed_state_desc_b)
+                state_linear_d = tf.nn.xw_plus_b(state_drop_d, self.embed_state_desc_W, self.embed_state_desc_b)
                 state_emb_d = tf.tanh(state_linear_d)
 
         if self.variation in ['isq', 'iq']:
             # images
             image_drop = tf.nn.dropout(image, 1-self.drop_out_rate)
-            image_linear = tf.compat.v1.nn.xw_plus_b(image_drop, self.embed_image_W, self.embed_image_b)
+            image_linear = tf.nn.xw_plus_b(image_drop, self.embed_image_W, self.embed_image_b)
             # image_emb = tf.tanh(image_linear)
 
             # my code
             image2_drop = tf.nn.dropout(image2, 1-self.drop_out_rate)
-            image2_linear = tf.compat.v1.nn.xw_plus_b(image2_drop, self.embed_image2_W, self.embed_image2_b)
+            image2_linear = tf.nn.xw_plus_b(image2_drop, self.embed_image2_W, self.embed_image2_b)
             image3_drop = tf.nn.dropout(image3, 1-self.drop_out_rate)
-            image3_linear = tf.compat.v1.nn.xw_plus_b(image3_drop, self.embed_image3_W, self.embed_image3_b)
+            image3_linear = tf.nn.xw_plus_b(image3_drop, self.embed_image3_W, self.embed_image3_b)
             image4_drop = tf.nn.dropout(image4, 1-self.drop_out_rate)
-            image4_linear = tf.compat.v1.nn.xw_plus_b(image4_drop, self.embed_image4_W, self.embed_image4_b)
+            image4_linear = tf.nn.xw_plus_b(image4_drop, self.embed_image4_W, self.embed_image4_b)
             image5_drop = tf.nn.dropout(image5, 1-self.drop_out_rate)
-            image5_linear = tf.compat.v1.nn.xw_plus_b(image5_drop, self.embed_image5_W, self.embed_image5_b)
+            image5_linear = tf.nn.xw_plus_b(image5_drop, self.embed_image5_W, self.embed_image5_b)
 
             # final_image_linear = tf.multiply(image_linear, image2_linear)
             final_image_linear = image_linear * image2_linear * image3_linear * image4_linear * image5_linear
@@ -423,7 +417,7 @@ class Answer_Generator():
 
         h_drop = tf.nn.dropout(h, 1-self.drop_out_rate)
         # print("\nh_drop: {} \nembed_score_W: {} \noptions_r_vector: {}".format(h_drop, self.embed_score_W, options_r_vector))
-        score_emb_h = tf.compat.v1.nn.xw_plus_b(h_drop, self.embed_score_W, self.embed_h_b)
+        score_emb_h = tf.nn.xw_plus_b(h_drop, self.embed_score_W, self.embed_h_b)
         # print("\n\n\nscore_emb_h: {} \n\n\n".format(score_emb_h))
 
         repeats = [num_output, 1]
@@ -445,10 +439,10 @@ class Answer_Generator():
         # scores = tf.multiply(state_emb, image_emb)
         # scores = state_emb * image_emb * state_emb_d * options_state_emb
         # scores_drop = tf.nn.dropout(scores, 1-self.drop_out_rate)
-        # scores_emb = tf.compat.v1.nn.xw_plus_b(scores_drop, self.embed_scor_W, self.embed_scor_b) 
+        # scores_emb = tf.nn.xw_plus_b(scores_drop, self.embed_scor_W, self.embed_scor_b) 
 
         # FINAL ANSWER
-        # generated_ANS = tf.compat.v1.nn.xw_plus_b(scores_drop, self.embed_scor_W, self.embed_scor_b)
+        # generated_ANS = tf.nn.xw_plus_b(scores_drop, self.embed_scor_W, self.embed_scor_b)
         generated_ANS = scores_emb
 
         if self.variation == 'isq':
@@ -474,11 +468,15 @@ class Answer_Generator():
 #####################################################
 print('Loading parameters ...')
 # Data input setting
-input_img_h5 = './data_img.h5'
-input_ques_h5 = './data_prepro.h5'
-input_json = './data_prepro.json'
+# input_img_h5 = './data_img.h5'
+input_img_h5 = None
+# input_ques_h5 = './data_prepro.h5'
+input_ques_h5 = None
+# input_json = './data_prepro.json'
+input_json = None
 
-input_text_h5 = './data_text.h5'
+# input_text_h5 = './data_text.h5'
+input_text_h5 = None
 
 # Train Parameters setting
 learning_rate = 0.0003			# learning rate for rmsprop
@@ -668,20 +666,20 @@ def train():
     sess = tf.InteractiveSession(config=tf.ConfigProto(allow_soft_placement=True))
     saver = tf.train.Saver(max_to_keep=100)
 
-    tvars = tf.compat.v1.trainable_variables()
+    tvars = tf.trainable_variables()
     lr = tf.Variable(learning_rate)
-    opt = tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
+    opt = tf.train.AdamOptimizer(learning_rate=lr)
     # gradient clipping
     gvs = opt.compute_gradients(tf_loss,tvars)
     clipped_gvs = [(tf.clip_by_value(grad, -10.0, 10.0), var) for grad, var in gvs]
     # tf.get_variable_scope().reuse_variables()
     # with tf.variable_scope(tf.get_variable_scope(), reuse=False) as scope:
     #     assert tf.get_variable_scope().reuse == True
-    with tf.compat.v1.variable_scope('embed_ques_W/Adam', reuse=tf.compat.v1.AUTO_REUSE) as scope:
+    with tf.variable_scope('embed_ques_W/Adam', reuse=tf.AUTO_REUSE) as scope:
         train_op = opt.apply_gradients(clipped_gvs)
 
     # tf.initialize_all_variables().run()
-    tf.compat.v1.global_variables_initializer().run()
+    tf.global_variables_initializer().run()
 
     losses = []  #my code
 
@@ -802,11 +800,11 @@ def train():
         lr.assign(current_learning_rate).eval()
 
         tStop = time.time()
-        if np.mod(itr, 10) == 0:
+        if np.mod(itr, 100) == 0:
             print ("Iteration: ", itr, " Loss: ", loss, " Learning Rate: ", lr.eval())
             print ("Time Cost:", round(tStop - tStart,2), "s")
-        # if np.mod(itr, 15000) == 0:
-        if itr in [20, 40, 50, 60, 80, 100, 200, 300, 400, 800, 1200]:
+        # if itr in [20, 40, 50, 60, 80, 100, 200, 300, 400, 800, 1200, 1500, 2000, 2500, 3000]:
+        if np.mod(itr, 500) == 0 or itr in [20, 40, 50, 60, 80, 100, 200, 300, 400, 800, 1200]:
             print ("Iteration ", itr, " is done. Saving the model ...")
             saver.save(sess, os.path.join(checkpoint_path, 'model'), global_step=itr)
             losses.append({'iteration': str(itr), 'loss': str(loss)})  # my code
@@ -827,23 +825,37 @@ if __name__ == '__main__':
 
     # input json
     parser.add_argument('--variation', required=True, help='enter variation - isq, iq, sq, q')
-    parser.add_argument('--offline_text', required=True, help='enter variation - True, False')
-    # parser.add_argument('--checkpoint_path', required=True, help='enter checkpoint_path - model_save/')
+    parser.add_argument('--input_img_h5', required=True, help='enter input image features path')
+    parser.add_argument('--input_data_h5', required=True, help='enter input data h5 path')
+    parser.add_argument('--input_data_json', required=True, help='enter input data json path')
+    parser.add_argument('--offline_text', required=True, help='enter variation - True/False if True enter path')
+    parser.add_argument('--input_text_h5', default=None, help='enter input text h5 path')
+    parser.add_argument('--model_path', required=True, help='enter checkpoint_path - model_save/')
+
 
     args = parser.parse_args()
     params = vars(args)
 
     offline_text = params['offline_text']
 
+    input_img_h5 = params['input_img_h5']
+    input_ques_h5 = params['input_data_h5']
+    input_json = params['input_data_json']
+
     if offline_text:
-        checkpoint_path = 'model_save_offline/'
+        checkpoint_path = params['model_path']
+        input_text_h5 = params['input_text_h5']
     else:
-        checkpoint_path = 'model_save/'
+        checkpoint_path = params['model_path']
 
     variation = params['variation']
     checkpoint_path = checkpoint_path + 'model_save_' + variation + '/'
     # "model_save/model_save_q/"
 
-    with tf.device('/gpu:'+str(0)):
+    print("In model_viscomp_vqa.py")
+    gpu = [x.name for x in device_lib.list_local_devices() if x.device_type == "GPU"]
+    print("Available GPU: {}".format(gpu[0]))
+
+    with tf.device(gpu[0]):
         train()
 

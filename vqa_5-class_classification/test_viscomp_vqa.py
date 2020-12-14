@@ -1,14 +1,17 @@
 from model_viscomp_vqa import *
 import tensorflow as tf
-import pandas as pd
 import numpy as np
 import os, h5py, sys, argparse
-import ipdb
 import time
 import math
-import cv2
-import codecs, json
-from tensorflow.compat.v1.nn import rnn_cell
+import json
+from tensorflow.python.client import device_lib
+
+
+input_json = None
+input_img_h5 = None
+input_ques_h5 = None
+input_text_h5 = None
 
 
 def get_data_test():
@@ -97,7 +100,7 @@ def softmax(generated_ans):
     return np.exp(generated_ans) / np.sum(np.exp(generated_ans), axis=0)
 
 
-def test(model_path, result_number):
+def test(model_path, result_number, result_path):
     # print('\n\nvariation: {}\n\n'.format(variation))
     print ('loading dataset...')
     if variation in ['isq', 'iq']:
@@ -348,10 +351,10 @@ def test(model_path, result_number):
             options = dataset['test_mc_ans_ix'][str(current_batch_file_idx[i]+1)]
             true_ans = options[dataset['test_ans_ix'][current_batch_file_idx[i]]]
 
-            print("question_id: {}".format(current_ques_id[i]))
-            print("prob: {}".format(prob_dist))
-            print("generated_ans: {}".format(generated_ans[i]))
-            print()
+            # print("question_id: {}".format(current_ques_id[i]))
+            # print("prob: {}".format(prob_dist))
+            # print("generated_ans: {}".format(generated_ans[i]))
+            # print()
             final_ans = np.argmax(prob_dist)
             ans = options[final_ans]
 
@@ -388,26 +391,40 @@ def test(model_path, result_number):
     # Save to JSON
     print ('Saving result...')
     my_list = list(result)
-    dd = json.dump(my_list,open('Results/'+variation+'/result_offline_bert_text_'+result_number+'.json','w'))
+    dd = json.dump(my_list,open(result_path+'/result_pipelined_'+result_number+'.json','w'))
 
 variation = ''
 offline_text = None
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--variation', required=True, help='enter variation - isq, iq, sq, q')
-    parser.add_argument('--offline_text', required=True, help='enter variation - True, False')
+    parser.add_argument('--input_img_h5', required=True, help='enter input image features path')
+    parser.add_argument('--input_data_h5', required=True, help='enter input data h5 path')
+    parser.add_argument('--input_data_json', required=True, help='enter input data json path')
+    parser.add_argument('--offline_text', required=True, help='enter variation - True/False if True enter path')
+    parser.add_argument('--input_text_h5', default=None, help='enter input text h5 path')
     parser.add_argument('--model_path', required=True, help='input model name to be used')
-    # parser.add_argument('--model_number', required=True, help='model iteration number')
+    parser.add_argument('--result_path', required=True, help='path to store result')
     
     args = parser.parse_args()
     params = vars(args)
 
     offline_text = params['offline_text']
     variation = params['variation']
+    input_json = params['input_data_json']
+    input_img_h5 = params['input_img_h5']
+    input_ques_h5 = params['input_data_h5']
+    input_text_h5 = params['input_text_h5']
     model_path = params['model_path']
+    result_path = params['result_path']
     result_number = model_path.split('-')[-1]
     # "model_save/model_save_q/model-10"
 
-    with tf.device('/gpu:'+str(1)):
-        test(model_path, result_number)
+    # print("hello")
+    gpu = [x.name for x in device_lib.list_local_devices() if x.device_type == "GPU"]
+
+    # print(gpu)
+    with tf.device('/gpu:'+str(0)):
+        test(model_path, result_number, result_path)

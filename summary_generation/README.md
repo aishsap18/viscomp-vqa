@@ -5,10 +5,10 @@ This code is based on the Pytorch implementation of [NMT Sequence-to-Sequence mo
 
 ### Installation 
 
-1. Clone the repository and navigate to "viscomp_vqa_generation"
+1. Clone the repository and navigate to "summary_generation"
 ```
 git clone https://github.com/aishsap18/viscomp-vqa
-cd viscomp_vqa_generation
+cd summary_generation
 ```
 
 2. Create the conda environment using the provided `.yml` file
@@ -31,7 +31,7 @@ python vqa_preprocessing.py --train_questions annotations/train_questions.json -
 For generating summaries, use the `isq` variation stating `Images+Story`. `q` (Question) come in handy when we experiment generating summary without story. 
 This code will generate 2 files in the `data` directory, `vqa_raw_train.json` and `vqa_raw_test.json`.
 
-2. Navigate to `viscomp_vqa_generation` directory and run the following command
+2. Navigate to `summary_generation` directory and run the following command
 ```
 python prepro_data.py --train_input data/vqa_raw_train.json --test_input data/vqa_raw_test.json --output_json data_prepro.json --output_bert_h5 data_bert_emb.h5 --variation isq
 ```

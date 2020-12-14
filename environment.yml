@@ -1,4 +1,4 @@
-name: k-class_env
+name: vis_vqa_env
 channels:
   - conda-forge/label/cf201901
   - conda-forge
@@ -152,7 +152,6 @@ dependencies:
   - tornado=6.0.3=py37h516909a_0
   - tqdm=4.43.0=py_0
   - traitlets=4.3.2=py37_0
-  - transformers=2.1.1=py_0
   - unzip=6.0=0
   - wasabi=0.6.0=py_0
   - wcwidth=0.1.7=py37_0
@@ -187,6 +186,7 @@ dependencies:
     - boto3==1.9.234
     - botocore==1.12.234
     - en-core-web-sm==2.2.5
+    - filelock==3.0.12
     - flickrapi==2.4.0
     - gast==0.3.2
     - gensim==3.8.0
@@ -205,6 +205,7 @@ dependencies:
     - numpy==1.16.5
     - oauth2==1.9.0.post1
     - oauthlib==3.1.0
+    - packaging==20.8
     - pandas==0.25.1
     - protobuf==3.9.2
     - pyparsing==2.4.2
@@ -216,7 +217,8 @@ dependencies:
     - requests-toolbelt==0.9.1
     - s3transfer==0.2.1
     - scikit-learn==0.21.3
-    - sentencepiece==0.1.85
+    - sentence-transformers==0.3.9
+    - sentencepiece==0.1.91
     - simplenlg==0.2.0
     - smart-open==1.8.4
     - tensorboard==1.14.0
@@ -225,6 +227,10 @@ dependencies:
     - tensorflow-hub==0.6.0
     - tensorflow-probability==0.7.0
     - termcolor==1.1.0
+    - tokenizers==0.9.3
+    - torch==1.7.1
+    - transformers==3.5.1
+    - typing-extensions==3.7.4.3
     - urllib3==1.25.5
     - virtualenv==16.7.7
     - werkzeug==0.16.0
