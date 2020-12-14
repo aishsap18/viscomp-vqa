@@ -21,12 +21,18 @@ conda env create -f environment.yml
 conda activate summary_generator_env
 ```
 
+4. Use `requirements.txt` file if pip packages do get installed
+```
+pip install -r requirements.txt
+```
+
+
 ### Steps to execute
 
 1. Navigate to the `data` directory in the root and run the following command
 ```
 cd ../data/
-python vqa_preprocessing.py --train_questions annotations/train_questions.json --test_questions annotations/val_questions.json --train_annotations annotations/train_annotations.json --test_annotations annotations/val_annotations.json --variation isq
+python vqa_preprocessing.py --train_questions annotations/summary/train_input_summary_1900.json --test_questions annotations/summary/val_input_summary_603.json --train_annotations annotations/summary/train_annotations_summary_1900.json --test_annotations annotations/summary/val_annotations_summary_603.json --variation isq
 ```
 For generating summaries, use the `isq` variation stating `Images+Story`. `q` (Question) come in handy when we experiment generating summary without story. 
 This code will generate 2 files in the `data` directory, `vqa_raw_train.json` and `vqa_raw_test.json`.
@@ -40,7 +46,11 @@ This code will generate `data_prepro.json` containing the cleaned and pre-proces
 
 3. Extracting the images features 
 	- Download the pretrained VGGNet 19 layer model from [https://gist.github.com/ksimonyan/3785162f95cd2d5fee77](https://gist.github.com/ksimonyan/3785162f95cd2d5fee77)
-	- Download the images from [https://drive.google.com/open?id=1GKyFDTcOvxy7XXxyNhkHTs6WpCsBnKoy](https://drive.google.com/open?id=1GKyFDTcOvxy7XXxyNhkHTs6WpCsBnKoy)
+	- Change the conda environment to `vis_vqa_env`.
+	- Download the images 
+	```
+	python ../data/download_images.py --input_json data_prepro.json --images_root [path to save images]
+	```
 	- Execute the following command for extracting the image features
 		```
 		python prepro_img.py --input_json data_prepro.json --image_root [path to images directory] --cnn_proto [path to cnn prototxt] --cnn_model [path to cnn model]

@@ -3,9 +3,9 @@
 
 The directory `summary_generation/` contains NMT Sequence-to-Sequence model for generating summary.
 
-The directory `vqa_k-class_classification` contains Deeper LSTM Q + norm I model for predicting answers using K-class classification approach.
+The directory `vqa_k-class_classification/` contains Deeper LSTM Q + norm I model for predicting answers using K-class classification approach.
 
-The directory `vqa_5-class_classification` contains Deeper LSTM Q + norm I model for predicting multiple choice answers using 5-class classification approach.
+The directory `vqa_5-class_classification/` contains Deeper LSTM Q + norm I model for predicting multiple choice answers using 5-class classification approach.
 
 
 ### Installation 
@@ -29,5 +29,6 @@ conda activate vis_vqa_env
 ```
 pip install -r requirements.txt
 ```
+
 
 #### Execution steps for each approach are provided in their respective directories.
