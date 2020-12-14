@@ -16,6 +16,10 @@ cd viscomp_vqa_generation
 conda env create -f environment.yml
 ```
 
+3. Activate the environment
+```
+conda activate summary_generator_env
+```
 
 ### Steps to execute
 
@@ -51,6 +55,6 @@ Here, the variations can be `isq, iq, sq, bsq, bisq (b - bert embeddings), gisq,
 
 5. Evaluate the model by executing 
 ```
-python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --checkpoint_path [path to checkpoint model] --results_path [patn to directory for saving results] --variation isq --input_bert_emb data_bert_emb.h5
+python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --checkpoint_path [path to checkpoint model] --results_path [path to directory for saving results] --variation isq --input_bert_emb data_bert_emb.h5
 ```
 This will generate `results.json` file which will contain the results.
