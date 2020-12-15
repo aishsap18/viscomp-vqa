@@ -89,7 +89,8 @@ def test(model_path):
             vocabulary_size = vocabulary_size,
             max_words_d = max_words_d,   
             vocabulary_size_d = vocabulary_size_d,
-            drop_out_rate = 0)
+            drop_out_rate = 0,
+            num_output = num_output)
 
     tf_answer, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_description, tf_question, = model.build_generator() # my code
     # tf_answer, tf_image, tf_question, = model.build_generator()
@@ -174,7 +175,6 @@ def test(model_path):
 
         top_ans = np.argmax(generated_ans, axis=1)
 
-
         # initialize json list
         for i in range(0,batch_size):
             ans = dataset['ix_to_ans'][str(top_ans[i]+1)]
@@ -183,21 +183,7 @@ def test(model_path):
                 if(current_ques_id[i] == 0):
                     continue
 
-                # calculate mmr score
-                true_ans = dataset['test_ans_ix'][str(current_batch_file_idx[i]+1)]
-                # print("true ans: {}".format(true_ans))
-                if true_ans == 0:
-                    mrr_score = 0.0
-                else:
-                    sorted_anss = np.argsort(generated_ans[i])[::-1] + 1
-                    rank = np.where(sorted_anss == int(true_ans))[0] + 1
-                    print("rank: {}".format(rank))
-                    if len(rank) != 0:
-                        mrr_score = 1 / rank[0]
-                    else:
-                        mrr_score = 0.0
-
-                result.append({u'answer': ans, u'question_id': str(current_ques_id[i])})
+                result.append({u'answer': ans, u'question_id': int(current_ques_id[i])})
 
         tStop = time.time()
         print ("Testing batch: ", current_batch_file_idx[0])
@@ -220,6 +206,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_img_h5', required=True, help='enter input image features path')
     parser.add_argument('--input_data_h5', required=True, help='enter input data h5 path')
     parser.add_argument('--input_data_json', required=True, help='enter input data json path')
+    parser.add_argument('--num_ans', required=True, help='enter number of answers')
     parser.add_argument('--model_path', required=True, help='input model name to be used')
     parser.add_argument('--results_path', required=True, help='path to save results')
     
@@ -228,6 +215,7 @@ if __name__ == '__main__':
 
     input_img_h5 = params['input_img_h5']
     input_ques_h5 = params['input_data_h5']
+    num_output = int(params['num_ans'])
     input_json = params['input_data_json']
     results_path = params['results_path']
 

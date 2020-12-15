@@ -314,70 +314,26 @@ def test(model_path, result_number, result_path):
                                     tf_mc_answers: current_mc_answers
                                     })
 
-        # top_ans = np.argmax(generated_ans, axis=1)
-
 
         # initialize json list
         for i in range(0,batch_size):
-            # ans = dataset['ix_to_ans'][str(top_ans[i]+1)]
             prob_dist = softmax(generated_ans[i])
             
             if current_batch_start_idx != 0:
                 if(current_ques_id[i] == 0):
                     continue
             
-            ''' code for multiple choice questions using 267-way classification '''
-            # true_ans_ix = dataset['test_ans_ix'][str(current_batch_file_idx[i]+1)]
-            # if true_ans_ix == '0':
-            #     true_ans = 'unk'
-            # else:
-            #     true_ans = dataset['ix_to_ans'][str(true_ans_ix)]
-            
-            # mc_anss = dataset['test_mc_ans_ix'][str(current_batch_file_idx[i]+1)]
-            # prob = []
-            # options = []
-            # for mc_ans in mc_anss:
-            #     try:
-            #         if int(mc_ans) == 0:
-            #             prob.append(0.0)
-            #             options.append(true_ans)
-            #         else:
-            #             prob.append(prob_dist[int(mc_ans)-1])
-            #             options.append(dataset['ix_to_ans'][mc_ans])
-            #     except:
-            #         options.append(true_ans)
-
-            ''' 5-way classification '''
             options = dataset['test_mc_ans_ix'][str(current_batch_file_idx[i]+1)]
             true_ans = options[dataset['test_ans_ix'][current_batch_file_idx[i]]]
 
-            # print("question_id: {}".format(current_ques_id[i]))
-            # print("prob: {}".format(prob_dist))
-            # print("generated_ans: {}".format(generated_ans[i]))
-            # print()
+            
             final_ans = np.argmax(prob_dist)
             ans = options[final_ans]
-
-            # calculate mmr score
-            # true_ans = dataset['test_ans_ix'][str(current_batch_file_idx[i]+1)]
-            # # print("true ans: {}".format(true_ans))
-            # if true_ans == 0:
-            #     mrr_score = 0.0
-            # else:
-            #     sorted_anss = np.argsort(generated_ans[i])[::-1] + 1
-            #     rank = np.where(sorted_anss == int(true_ans))[0] + 1
-            #     # print("rank: {}".format(rank))
-            #     if len(rank) != 0:
-            #         mrr_score = 1 / rank[0]
-            #     else:
-            #         mrr_score = 0.0
 
             result.append({u'question_id': str(current_ques_id[i]), 
                 u'true_answer': 'unk' if true_ans == '0' else dataset['ix_to_ans'][true_ans],
                 u'predicted_answer': 'unk' if ans == '0' else dataset['ix_to_ans'][ans],
                 u'multiple_choices': [dataset['ix_to_ans'][opt] if opt != '0' else 'unk' for opt in options]
-                # u'rank': str(rank[0]),
-                # u'mrr_score': str(mrr_score)
                 })
 
         tStop = time.time()
@@ -391,7 +347,7 @@ def test(model_path, result_number, result_path):
     # Save to JSON
     print ('Saving result...')
     my_list = list(result)
-    dd = json.dump(my_list,open(result_path+'/result_pipelined_'+result_number+'.json','w'))
+    dd = json.dump(my_list,open(result_path+'/result_'+result_number+'.json','w'))
 
 variation = ''
 offline_text = None

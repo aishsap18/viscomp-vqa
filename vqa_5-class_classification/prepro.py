@@ -411,9 +411,9 @@ def main(params):
     out['ix_to_word_d'] = itow_d # encode the (1-indexed) vocab
     out['ix_to_ans'] = itoa
     out['unique_img_train'] = unique_img_train
-    print("\n\n\nunique_img_train: {}\n\n\n".format(len(out['unique_img_train'])))
+    print("unique_img_train: {}".format(len(out['unique_img_train'])))
     out['unique_img_test'] = unique_img_test
-    print("\n\n\nunique_img_test: {}\n\n\n".format(len(out['unique_img_test'])))
+    print("unique_img_test: {}".format(len(out['unique_img_test'])))
     
     # print(len(out['unique_img_train']))
     # print(len(out['unique_img_test']))
@@ -440,7 +440,6 @@ if __name__ == "__main__":
     # input json
     parser.add_argument('--input_train_json', required=True, help='input json file to process into hdf5')
     parser.add_argument('--input_test_json', required=True, help='input json file to process into hdf5')
-    # parser.add_argument('--num_ans', type=int, help='number of top answers for the final classifications.')
     parser.add_argument('--multiple_choice', required=True, help='enter true if multiple choice')
 
     parser.add_argument('--output_json', default='data_prepro.json', help='output json file')
@@ -450,9 +449,8 @@ if __name__ == "__main__":
     parser.add_argument('--max_length', default=15, type=int, help='max length of a caption, in number of words. captions longer than this get clipped.')
     parser.add_argument('--word_count_threshold', default=0, type=int, help='only words that occur more than this number of times will be put in vocab')
     parser.add_argument('--num_test', default=0, type=int, help='number of test images (to withold until very very end)')
-    # parser.add_argument('--token_method', default='nltk', help='token method, nltk is much more slower.')
-
-    parser.add_argument('--batch_size', default=500, type=int)
+    
+    parser.add_argument('--batch_size', default=64, type=int)
 
     args = parser.parse_args()
     params = vars(args) # convert to ordinary dict

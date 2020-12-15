@@ -37,6 +37,9 @@ def evaluate(input_stories_tensor, input_questions_tensor, input_image_features,
 
     for i in range(0, len(input_stories_tensor), BATCH_SIZE):
 
+        if i+BATCH_SIZE > len(input_stories_tensor):
+            continue
+
         # record the indices of current input instances
         index = range(i, i+BATCH_SIZE)
     
@@ -59,7 +62,7 @@ def evaluate(input_stories_tensor, input_questions_tensor, input_image_features,
         x_questions = inp_questions.transpose(0,1).to(device)
 
         # initialize hidden state of encoder
-        encoder_hidden = encoder.initialize_hidden_state(device)
+        encoder_hidden = encoder.initialize_hidden_state()
         enc_output, enc_hidden, imgs_output = encoder(x_stories, x_questions, 
                                                      lens, imgs.to(device), device)
         
@@ -128,7 +131,7 @@ def print_save_results(data, results, num):
     for (i, (ind, result)) in enumerate(results):
         
         temp = {}
-        inp_story, _, inp_ques, targ, _ = data[ind]
+        inp_story, inp_ques, targ, _ = data[ind]
         temp['input_story'] = inp_story
         temp['input_question'] = inp_ques
         temp['target'] = targ
@@ -143,7 +146,7 @@ def print_save_results(data, results, num):
             print()
 
     # store the results in json file
-    json.dump(out, open(results_path+variation+'/result_'+result_number+'.json', 'w'))
+    json.dump(out, open(results_path+'result_'+result_number+'.json', 'w'))
     print('wrote ', results_path)
 
 

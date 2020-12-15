@@ -1,5 +1,4 @@
 import urllib.request
-import pandas as pd
 import os
 import argparse
 import json
@@ -24,15 +23,15 @@ image_urls += data['unique_img_test']
 
 rejected = []
 for i in image_urls:
-	img = 'https://' + i.split('/')[1]
+	img = 'https://' + i
 	img = img.replace('-','/')
 
 	try:
-		urllib.request.urlretrieve(img, images_root+i.split('/')[1])
+		urllib.request.urlretrieve(img, images_root+i)
 	except:
 		try:
 			img = img.replace('.jpg','.png')
-			urllib.request.urlretrieve(img, images_root+i.split('/')[1])
+			urllib.request.urlretrieve(img, images_root+i)
 		except:
 			rejected.append(i)
 			continue

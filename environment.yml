@@ -185,7 +185,6 @@ dependencies:
     - boto==2.49.0
     - boto3==1.9.234
     - botocore==1.12.234
-    - en-core-web-sm==2.2.5
     - filelock==3.0.12
     - flickrapi==2.4.0
     - gast==0.3.2

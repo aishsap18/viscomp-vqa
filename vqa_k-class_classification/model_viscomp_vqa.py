@@ -13,7 +13,7 @@ from sklearn.metrics import average_precision_score
 import gc
 
 class Answer_Generator():
-    def __init__(self, rnn_size, rnn_layer, batch_size, input_embedding_size, dim_image, dim_hidden, max_words_q, vocabulary_size, max_words_d, vocabulary_size_d, drop_out_rate):
+    def __init__(self, rnn_size, rnn_layer, batch_size, input_embedding_size, dim_image, dim_hidden, max_words_q, vocabulary_size, max_words_d, vocabulary_size_d, drop_out_rate, num_output):
         self.rnn_size = rnn_size
         self.rnn_layer = rnn_layer
         self.batch_size = batch_size
@@ -25,6 +25,7 @@ class Answer_Generator():
         self.max_words_d = max_words_d
         self.vocabulary_size_d = vocabulary_size_d	
         self.drop_out_rate = drop_out_rate
+        self.num_output = num_output
 
     	# question-embedding
         self.embed_ques_W = tf.Variable(tf.random.uniform([self.vocabulary_size, self.input_embedding_size], -0.08, 0.08), name='embed_ques_W')
@@ -78,8 +79,8 @@ class Answer_Generator():
     	# end my code
 
         # score-embedding
-        self.embed_scor_W = tf.Variable(tf.random.uniform([dim_hidden, num_output], -0.08, 0.08), name='embed_scor_W')
-        self.embed_scor_b = tf.Variable(tf.random.uniform([num_output], -0.08, 0.08), name='embed_scor_b')
+        self.embed_scor_W = tf.Variable(tf.random.uniform([dim_hidden, self.num_output], -0.08, 0.08), name='embed_scor_W')
+        self.embed_scor_b = tf.Variable(tf.random.uniform([self.num_output], -0.08, 0.08), name='embed_scor_b')
 
     def build_model(self):
         image = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.dim_image])
@@ -295,7 +296,7 @@ dim_image = 4096
 dim_hidden = 1024 #1024			# size of the common embedding vector
 
 
-num_output = 1896			# number of output answers
+num_output = None # 1896			# number of output answers
 
 
 img_norm = 1				# normalize the image feature. 1 = normalize, 0 = not normalize
@@ -407,7 +408,8 @@ def train():
             vocabulary_size = vocabulary_size,
             max_words_d = max_words_d,   
             vocabulary_size_d = vocabulary_size_d,  
-            drop_out_rate = 0.5)
+            drop_out_rate = 0.5,
+            num_output = num_output)
 
     # tf_loss, tf_image, tf_question, tf_label = model.build_model()
     tf_loss, tf_image, tf_image2, tf_image3, tf_image4, tf_image5, tf_description, tf_question, tf_label = model.build_model() # my code
@@ -514,7 +516,8 @@ if __name__ == '__main__':
     input_img_h5 = params['input_img_h5']
     input_ques_h5 = params['input_data_h5']
     input_json = params['input_data_json']
-    num_answer = params['num_ans']
+    num_output = int(params['num_ans'])
+    num_answer = num_output
     checkpoint_path = params['model_path']
 
     with tf.device('/gpu:'+str(0)):

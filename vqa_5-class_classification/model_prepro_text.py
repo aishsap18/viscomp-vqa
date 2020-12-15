@@ -193,7 +193,7 @@ max_itr = 1200  # 30000
 # n_epochs = 1  # 3000
 max_words_d = 50
 
-def get_train_data(method):
+def get_train_data(method, input_json, input_ques_h5, input_bert_emb=None):
 
 	dataset = {}
 	train_data = {}
@@ -224,10 +224,10 @@ def get_train_data(method):
 	return dataset, train_data
 
 
-def train():
+def train(input_json, input_ques_h5, input_bert_emb=None):
 	
 	print ('loading dataset...')
-	dataset, train_data = get_train_data(method)
+	dataset, train_data = get_train_data(method, input_json, input_ques_h5, input_bert_emb)
 
 	num_train = train_data['description'].shape[0]
 
@@ -239,15 +239,15 @@ def train():
 	print ('constructing  model...')
 	model = Answer_Generator(
 			dim_bert = dim_bert,
-            rnn_size = rnn_size,
-            rnn_layer = rnn_layer,
-            batch_size = batch_size,
-            input_embedding_size = input_embedding_size,
-            dim_hidden = dim_hidden,
-            max_words_d = max_words_d,   
-            vocabulary_size_d = vocabulary_size_d,  
-            drop_out_rate = 0.5,
-            method = method)
+			rnn_size = rnn_size,
+			rnn_layer = rnn_layer,
+			batch_size = batch_size,
+			input_embedding_size = input_embedding_size,
+			dim_hidden = dim_hidden,
+			max_words_d = max_words_d,   
+			vocabulary_size_d = vocabulary_size_d,  
+			drop_out_rate = 0.5,
+			method = method)
 
 	if method == 'bert':
 		# print("\nmethod: {}\n".format(method))
@@ -265,13 +265,13 @@ def train():
 	# gradient clipping
 	gvs = opt.compute_gradients(tf_loss,tvars)
 	clipped_gvs = [(tf.clip_by_value(grad, -10.0, 10.0), var) for grad, var in gvs]
-    # tf.get_variable_scope().reuse_variables()
-    # with tf.variable_scope(tf.get_variable_scope(), reuse=False) as scope:
-    #     assert tf.get_variable_scope().reuse == True
+	# tf.get_variable_scope().reuse_variables()
+	# with tf.variable_scope(tf.get_variable_scope(), reuse=False) as scope:
+	#     assert tf.get_variable_scope().reuse == True
 	with tf.compat.v1.variable_scope('embed_ques_W/Adam', reuse=tf.compat.v1.AUTO_REUSE) as scope:
 		train_op = opt.apply_gradients(clipped_gvs)
 
-    # tf.initialize_all_variables().run()
+	# tf.initialize_all_variables().run()
 	tf.compat.v1.global_variables_initializer().run()
 
 	losses = []  #my code
@@ -292,21 +292,21 @@ def train():
 			current_bert_description = train_data['text_embeddings'][index,:]
 
 			_, loss, description, embedding, description_length, bert_desc = sess.run(
-                    [train_op, tf_loss, tf_description, tf_embedding, tf_description_length, tf_bert_description_embedding],
-                    feed_dict={
-                        tf_description: current_description,
-                        tf_description_length: current_length_d,
-                        tf_bert_description_embedding: current_bert_description
-                        })
+					[train_op, tf_loss, tf_description, tf_embedding, tf_description_length, tf_bert_description_embedding],
+					feed_dict={
+						tf_description: current_description,
+						tf_description_length: current_length_d,
+						tf_bert_description_embedding: current_bert_description
+						})
 
 		elif method == 'lstm':
 			# print("\nmethod: {}\n".format(method))
 			_, loss, description, embedding, description_length = sess.run(
-                    [train_op, tf_loss, tf_description, tf_embedding, tf_description_length],
-                    feed_dict={
-                        tf_description: current_description,
-                        tf_description_length: current_length_d
-                        })
+					[train_op, tf_loss, tf_description, tf_embedding, tf_description_length],
+					feed_dict={
+						tf_description: current_description,
+						tf_description_length: current_length_d
+						})
 
 		current_learning_rate = lr*decay_factor
 		lr.assign(current_learning_rate).eval()
@@ -336,9 +336,9 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--method', default='lstm', help='enter method bert/lstm')
 	parser.add_argument('--input_data_h5', required=True, help='enter input data h5 path')
-    parser.add_argument('--input_data_json', required=True, help='enter input data json path')
-    parser.add_argument('--input_bert_emb', default=None, help='enter input bert emb file path')
-    parser.add_argument('--checkpoint_path', required=True, help='enter checkpoint path')
+	parser.add_argument('--input_data_json', required=True, help='enter input data json path')
+	parser.add_argument('--input_bert_emb', default=None, help='enter input bert emb file path')
+	parser.add_argument('--checkpoint_path', required=True, help='enter checkpoint path')
 
 	args = parser.parse_args()
 	params = vars(args)
@@ -348,8 +348,8 @@ if __name__ == '__main__':
 	input_ques_h5 = params['input_data_h5']
 	input_bert_emb = params['input_bert_emb']
 
-	checkpoint_path = params['checkpoint_path']+'/'+method+'/'
+	checkpoint_path = params['checkpoint_path']
 	# "text_model_save/lstm/"
 
 	with tf.device('/gpu:'+str(0)):
-		train()
+		train(input_json, input_ques_h5, input_bert_emb)

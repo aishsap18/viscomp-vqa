@@ -102,7 +102,7 @@ class Encoder(nn.Module):
             x_stories_c0 = torch.zeros((1, self.batch_sz, self.enc_units)).to(device)
             stories_output, (stories_h, stories_c) = self.lstm_stories(x_stories, (x_h0, x_stories_c0))
  
-           return stories_output, stories_h, imgs
+            return stories_output, stories_h, imgs
 
     def initialize_hidden_state(self):
         return torch.zeros((1, self.batch_sz, self.enc_units))

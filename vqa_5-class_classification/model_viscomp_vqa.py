@@ -803,8 +803,7 @@ def train():
         if np.mod(itr, 100) == 0:
             print ("Iteration: ", itr, " Loss: ", loss, " Learning Rate: ", lr.eval())
             print ("Time Cost:", round(tStop - tStart,2), "s")
-        # if itr in [20, 40, 50, 60, 80, 100, 200, 300, 400, 800, 1200, 1500, 2000, 2500, 3000]:
-        if np.mod(itr, 500) == 0 or itr in [20, 40, 50, 60, 80, 100, 200, 300, 400, 800, 1200]:
+        if np.mod(itr, 500) == 0:
             print ("Iteration ", itr, " is done. Saving the model ...")
             saver.save(sess, os.path.join(checkpoint_path, 'model'), global_step=itr)
             losses.append({'iteration': str(itr), 'loss': str(loss)})  # my code
@@ -849,8 +848,8 @@ if __name__ == '__main__':
         checkpoint_path = params['model_path']
 
     variation = params['variation']
-    checkpoint_path = checkpoint_path + 'model_save_' + variation + '/'
-    # "model_save/model_save_q/"
+    # checkpoint_path = checkpoint_path
+    # "model_save/"
 
     print("In model_viscomp_vqa.py")
     gpu = [x.name for x in device_lib.list_local_devices() if x.device_type == "GPU"]

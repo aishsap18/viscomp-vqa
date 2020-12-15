@@ -32,16 +32,16 @@ pip install -r requirements.txt
 1. Navigate to the `data` directory in the root and run the following command
 ```
 cd ../data/
-python vqa_preprocessing.py --train_questions annotations/summary/train_input_summary_1900.json --test_questions annotations/summary/val_input_summary_603.json --train_annotations annotations/summary/train_annotations_summary_1900.json --test_annotations annotations/summary/val_annotations_summary_603.json --variation isq
+python vqa_preprocessing.py --train_questions annotations/summary/train_input_summary_1900.json --test_questions annotations/summary/val_input_summary_603.json --train_annotations annotations/summary/train_annotations_summary_1900.json --test_annotations annotations/summary/val_annotations_summary_603.json 
 ```
-For generating summaries, use the `isq` variation stating `Images+Story`. `q` (Question) come in handy when we experiment generating summary without story. 
 This code will generate 2 files in the `data` directory, `vqa_raw_train.json` and `vqa_raw_test.json`.
 
 2. Navigate to `summary_generation` directory and run the following command
 ```
-python prepro_data.py --train_input data/vqa_raw_train.json --test_input data/vqa_raw_test.json --output_json data_prepro.json --output_bert_h5 data_bert_emb.h5 --variation isq
+cd ../summary_generation/
+python prepro_data.py --train_input ../data/vqa_raw_train.json --test_input ../data/vqa_raw_test.json --output_json data_prepro.json --output_bert_h5 data_bert_emb.h5 --variation isq
 ```
-Here, the variations can be `isq - Images+Story`, `iq - Images+Question`, `sq - Story`, and if we wish to use BERT embeddings then prepend the former variations with `b`: `bisq - Images+BERT(Story)` and `bsq - BERT(Story)`. 
+Here, the variations can be `isq - Images+Story`, and if we wish to use BERT embeddings then prepend the former variation with `b`: `bisq - Images+BERT(Story)`. 
 This code will generate `data_prepro.json` containing the cleaned and pre-processed data. If the variation requires BERT embeddings then it will generate an additional `data_bert_emb.h5` containing BERT embeddings of the story and question tokens.  
 
 3. Extracting the images features 
@@ -57,7 +57,7 @@ This code will generate `data_prepro.json` containing the cleaned and pre-proces
 		```
 		This will generate the `data_img.h5` file.
 
-4. Train the model by executing 
+4. Change environment back to `summary_generator_env` Train the model by executing 
 ```
 python batch_train_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --model_save [checkpoint path] --variation isq --input_bert_emb data_bert_emb.h5
 ```

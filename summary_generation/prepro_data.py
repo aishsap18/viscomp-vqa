@@ -212,8 +212,8 @@ if __name__ == '__main__':
     parser.add_argument('--train_input', required=True, help='enter train input json')
     parser.add_argument('--test_input', required=True, help='enter test input json')
     parser.add_argument('--output_json', required=True, help='enter output json')
-    parser.add_argument('--output_bert_h5', required=True, help='enter output bert h5')
-    parser.add_argument('--variation', required=True, help='enter variation - isq, iq, sq, bsq, bisq, biq')
+    parser.add_argument('--output_bert_h5', default='data_bert_emb.h5', help='enter output bert h5')
+    parser.add_argument('--variation', default='isq', help='enter variation - isq or bisq')
 
     args = parser.parse_args()
     params = vars(args)

@@ -15,6 +15,7 @@ This code will generate 2 files in the `data` directory, `vqa_raw_train.json` an
 
 2. Navigate to `vqa_k-class_classification` directory and run the following command
 ```
+cd ../vqa_k-class_classification
 python prepro.py --input_train_json ../data/vqa_raw_train.json --input_test_json ../data/vqa_raw_test.json --num_ans [number of answers]
 ```
 This will generate 2 files `data_prepro.h5` and `data_prepro.json` containing pre-processed data.
@@ -33,10 +34,10 @@ This will generate 2 files `data_prepro.h5` and `data_prepro.json` containing pr
 
 4. Train the model by executing
 ```
-python model_viscomp_vqa.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --input_img_h5 data_img.h5 --model_save [checkpoint path] --num_ans [number of answers]
+python model_viscomp_vqa.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --input_img_h5 data_img.h5 --model_path [checkpoint path] --num_ans [number of answers]
 ```
 
 5. Evaluate the model by executing 
 ```
-python test_viscomp_vqa.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --input_img_h5 data_img.h5 --model_save [path to checkpoint model] --results_path [path to save results]
+python test_viscomp_vqa.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --input_img_h5 data_img.h5 --model_path [path to checkpoint model] --results_path [path to save results] --num_ans [number of answers]
 ```

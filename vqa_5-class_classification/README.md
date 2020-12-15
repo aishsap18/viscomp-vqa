@@ -15,7 +15,8 @@ This code will generate 2 files in the `data` directory, `vqa_raw_train.json` an
 
 2. Navigate to `vqa_5-class_classification` directory and run the following command
 ```
-python prepro.py --input_train_json ../data/vqa_raw_train.json --input_test_json ../data/vqa_raw_test.json ----multiple_choice true
+cd ../vqa_5-class_classification/
+python prepro.py --input_train_json ../data/vqa_raw_train.json --input_test_json ../data/vqa_raw_test.json --multiple_choice true
 ```
 This will generate 2 files `data_prepro.h5` and `data_prepro.json` containing pre-processed data.
 
@@ -35,7 +36,7 @@ This will generate 2 files `data_prepro.h5` and `data_prepro.json` containing pr
 	- Using LSTM 
 	```
 	python model_prepro_text.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --checkpoint_path [checkpoint path]
-	python test_prepro_text.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --checkpoint_path [path to checkpoint model]
+	python test_prepro_text.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --checkpoint_model [path to checkpoint model]
 	```
 	This will generate the `data_text_train.h5` file containing trained story embeddings using LSTM. 
 
@@ -43,7 +44,7 @@ This will generate 2 files `data_prepro.h5` and `data_prepro.json` containing pr
 	```
 	python get_bert_embeddings.py --input_train_json ../data/vqa_raw_train.json --input_test_json ../data/vqa_raw_test.json --out_name data_text_bert.h5
 	python model_prepro_text.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --checkpoint_path [checkpoint path] --method bert --input_bert_emb data_text_bert.h5
-	python test_prepro_text.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --checkpoint_path [path to checkpoint model] --method bert --input_bert_emb data_text_bert.h5
+	python test_prepro_text.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --checkpoint_model [path to checkpoint model] --method bert --input_bert_emb data_text_bert.h5
 	```
 	This will generate the `data_text_train.h5` file containing trained story embeddings using BERT.
 
@@ -55,5 +56,5 @@ Here, the input `variation` can be 'isq - Images+Story+Question, iq - Images+Que
 
 6. Evaluate the model by executing 
 ```
-python test_viscomp_vqa.py python model_viscomp_vqa.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --input_img_h5 data_img.h5 --model_path [path to checkpoint model] --variation [isq/iq/sq] --offline_text [True/False] --input_text_h5 data_text_train.h5 --result_path [path to save results]
+python test_viscomp_vqa.py --input_data_h5 data_prepro.h5 --input_data_json data_prepro.json --input_img_h5 data_img.h5 --model_path [path to checkpoint model] --variation [isq/iq/sq] --offline_text [True/False] --input_text_h5 data_text_train.h5 --result_path [path to save results]
 ```

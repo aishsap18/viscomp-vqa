@@ -35,8 +35,8 @@ if __name__ == "__main__":
 	
 	sentence_embeddings_train = np.array(model.encode(sentences_train))
 	sentence_embeddings_test = np.array(model.encode(sentences_test))
-	print(sentence_embeddings_train)
-	print(sentence_embeddings_test)
+	# print(sentence_embeddings_train)
+	# print(sentence_embeddings_test)
 
 	f = h5py.File(out_name, "w")
 	f.create_dataset('text_embeddings_train', sentence_embeddings_train.shape, dtype='f4', data=sentence_embeddings_train)

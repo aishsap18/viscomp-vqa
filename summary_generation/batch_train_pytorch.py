@@ -297,13 +297,14 @@ def train(dataset):
             loss = 0
             
             # input 
-            x_stories = inp_stories
-            x_questions = inp_questions
+            x_stories = inp_stories.transpose(0,1).to(device)
+            x_questions = inp_questions.transpose(0,1).to(device)
             
             # target
             ys = targ
+            lens = None
             
-            enc_output, enc_hidden, imgs_output = encoder(xs.to(device), lens, imgs.to(device), device)
+            enc_output, enc_hidden, imgs_output = encoder(x_stories, x_questions, lens, imgs.to(device), device)
             
             # initialize decoder hidden state with encryption output hidden state
             dec_hidden = enc_hidden
@@ -364,7 +365,7 @@ def train(dataset):
                         "questions_weights_matrix": questions_weights_matrix,
                         "target_weights_matrix": target_weights_matrix
 
-                }, checkpoint_path+"model_"+variation+"/epoch-"+str(epoch)+".pt")
+                }, checkpoint_path+"model_epoch-"+str(epoch)+".pt")
         
         print('Epoch {} Iteration {} Loss {:.4f}'.format(epoch, 
                                             itr,
@@ -373,7 +374,7 @@ def train(dataset):
         print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
 
     # saving losses
-    json.dump(losses, open(checkpoint_path+"model_"+variation+'/losses_'+variation+'.json', 'w'))
+    json.dump(losses, open(checkpoint_path+'losses_'+variation+'.json', 'w'))
     print("---------------------------------")
 
 
