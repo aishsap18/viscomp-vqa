@@ -19,7 +19,7 @@ def main(params):
 
     train = []
     test = []
-    imdir='%s/%s'
+    # imdir='%s/%s'
 
     print('Loading annotations and questions...')
     train_anno = json.load(open(params['train_annotations'], 'r', encoding='utf-8'))
@@ -28,7 +28,7 @@ def main(params):
     train_ques = json.load(open(params['train_questions'], 'r', encoding='utf-8'))
     val_ques = json.load(open(params['test_questions'], 'r', encoding='utf-8'))
 
-    directory = ''
+    # directory = ''
 
     # train instances   
     for i in range(len(train_anno['annotations'])):
@@ -40,7 +40,7 @@ def main(params):
         for image in images:
             image = str(image)
             img = image[8:].replace('/', '-')
-            image_path.append(imdir%(directory, img))
+            image_path = img
 
         question = train_ques['questions'][i]['question']
         
@@ -65,7 +65,7 @@ def main(params):
         for image in images:
             image = str(image)
             img = image[8:].replace('/', '-')
-            image_path.append(imdir%(directory, img))
+            image_path = img
         
         question = val_ques['questions'][i]['question']
         

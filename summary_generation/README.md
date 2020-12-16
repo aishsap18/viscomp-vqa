@@ -46,25 +46,43 @@ This code will generate `data_prepro.json` containing the cleaned and pre-proces
 
 3. Extracting the images features 
 	- Download the pretrained VGGNet 19 layer model from [https://gist.github.com/ksimonyan/3785162f95cd2d5fee77](https://gist.github.com/ksimonyan/3785162f95cd2d5fee77)
-	- Change the conda environment to `vis_vqa_env`.
-	- Download the images 
-	```
-	python ../data/download_images.py --input_json data_prepro.json --images_root [path to save images]
-	```
+	- Create a directory and download the images in it 
+		```
+		python ../data/download_images.py --input_json data_prepro.json --images_root [path to save images]
+		```
+		for example,
+		```
+		mkdir images
+		python ../data/download_images.py --input_json data_prepro.json --images_root images/
+		```
 	- Execute the following command for extracting the image features
 		```
 		python prepro_img.py --input_json data_prepro.json --image_root [path to images directory] --cnn_proto [path to cnn prototxt] --cnn_model [path to cnn model]
 		```
+		for example,
+		```
+		python prepro_img.py --input_json data_prepro.json --image_root images/ --cnn_proto VGG_ILSVRC_19_layers_deploy.prototxt --cnn_model VGG_ILSVRC_19_layers.caffemodel
+		```
 		This will generate the `data_img.h5` file.
 
-4. Change environment back to `summary_generator_env` Train the model by executing 
+4. Change environment back to `summary_generator_env`, create a directory for saving checkpoints and train the model by executing 
 ```
 python batch_train_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --model_save [checkpoint path] --variation isq --input_bert_emb data_bert_emb.h5
 ```
+for example,
+```
+mkdir checkpoints
+python batch_train_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --model_save checkpoints/ --variation isq --input_bert_emb data_bert_emb.h5
+```
 Here, the variations can be `isq, iq, sq, bsq, bisq (b - bert embeddings), gisq, gsq (g - glove embeddings)`. 
 
-5. Evaluate the model by executing 
+5. Create a directory for saving results and evaluate the model by executing 
 ```
 python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --checkpoint_path [path to checkpoint model] --results_path [path to directory for saving results] --variation isq --input_bert_emb data_bert_emb.h5
+```
+for example,
+```
+mkdir results
+python batch_test_pytorch.py --input_data_file data_prepro.json --input_img_file data_img.h5 --checkpoint_path checkpoints/model-0 --results_path results/ --variation isq --input_bert_emb data_bert_emb.h5
 ```
 This will generate `results.json` file which will contain the results.
