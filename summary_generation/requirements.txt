@@ -15,7 +15,7 @@ cycler==0.10.0
 cymem==2.0.2
 Cython==0.29.20
 cytoolz==0.10.1
-dask==2.8.1
+dask==2021.10.0
 de==0.1
 decorator==4.3.2
 docutils==0.14
